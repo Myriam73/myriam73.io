@@ -238,6 +238,46 @@ public function getLesFraisForfait($idVisiteur, $mois)
     }
 
     /**
+     * Met à jour la table ligneFraisHorsForfait
+     * Met à jour la table ligneFraisHorsForfait pour un visiteur et
+     * un mois donné en enregistrant les nouveaux montants
+     *
+     * @param String $idVisiteur ID du visiteur
+     * @param String $mois       Mois sous la forme aaaamm
+     * @param Array  $lesFrais   tableau associatif de clé idFrais et
+     *                           de valeur la quantité pour ce frais
+     *
+     * @return null
+     */
+     public function majFraisHorsForfait(
+        $idFrais,
+        $idVisiteur,
+        $leMois,
+        $libelle,
+        $dateFrais,
+        $montant
+    ){
+         $dateHF = dateFrancaisVersAnglais($dateFrais);
+            $requetePrepare = PdoGSB::$monPdo->prepare(
+                    'UPDATE lignefraishorsforfait '
+                    . 'SET lignefraishorsforfait.montant = :montant, '
+                    . 'lignefraishorsforfait.libelle = :libelle, '
+                    . 'lignefraishorsforfait.date = :date '
+                    . 'WHERE lignefraishorsforfait.idvisiteur = :unIdVisiteur '
+                    . 'AND lignefraishorsforfait.mois = :unMois '
+                    . 'AND lignefraishorsforfait.id= :unIdFrais'
+            );
+            $requetePrepare->bindParam(':montant', $montant, PDO::PARAM_INT);
+            $requetePrepare->bindParam(':libelle', $libelle, PDO::PARAM_STR);
+            $requetePrepare->bindParam(':date', $dateHF, PDO::PARAM_STR);
+            $requetePrepare->bindParam(':unIdVisiteur', $idVisiteur, PDO::PARAM_STR);
+            $requetePrepare->bindParam(':unMois', $leMois, PDO::PARAM_STR);
+            $requetePrepare->bindParam('unIdFrais', $idFrais, PDO::PARAM_STR);
+            $requetePrepare->execute();
+        }
+        
+        
+     /**
      * Met à jour la table ligneFraisForfait
      * Met à jour la table ligneFraisForfait pour un visiteur et
      * un mois donné en enregistrant les nouveaux montants
@@ -422,6 +462,7 @@ public function getLesFraisForfait($idVisiteur, $mois)
         $requetePrepare->execute();
     }
 
+
     /**
      * Supprime le frais hors forfait dont l'id est passé en argument
      *
@@ -513,4 +554,5 @@ public function getLesFraisForfait($idVisiteur, $mois)
         $requetePrepare->bindParam(':unMois', $mois, PDO::PARAM_STR);
         $requetePrepare->execute();
     }
+
 }

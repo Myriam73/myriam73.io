@@ -159,6 +159,29 @@ function getMoisPrecedent($mois){
     return $numAnnee.$numMois;
 }
 
+/**
+ * Fonction qui retourne le mois suivant un mois passé en paramètre
+ *
+ * @param String $mois Contient le mois à utiliser
+ *
+ * @return String le mois d'avant
+ */
+function getMoisSuivant($mois){
+    $numAnnee = substr($mois, 0, 4);
+    $numMois = substr($mois, 4, 2);
+    if($numMois=='01'){
+        $numMois='12';
+        $numAnnee++;
+    }
+    else{
+        $numMois++;
+    }
+     if (strlen($numMois) == 1) {//strlen=verifie le nombre de caractères. Ex:si mois=6, on va mettre 06.
+        $numMois = '0' . $numMois;
+        }
+    return $numAnnee.$numMois;
+}
+
 /* gestion des erreurs */
 
 /**

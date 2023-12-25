@@ -85,8 +85,8 @@
                         </h1>
                     </div>
                     <div class="col-md-8">
-                        <ul class="nav nav-pills pull-right" role="tablist">
-                            <li <?php if (!$uc || $uc == 'accueil') { ?>class="active" <?php } ?>>
+                        <ul class="nav nav-pills pull-right couleur" role="tablist">
+                            <li <?php if (!$uc || $uc == 'accueil') { ?>class="active accueil" <?php } ?>>
                                 <a style="color : orange" href="index.php">
                                     <span class="glyphicon glyphicon-home"></span>
                                     Accueil

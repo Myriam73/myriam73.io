@@ -19,6 +19,11 @@ $mois = getMois(date('d/m/Y'));
 $lesMois = getLesDouzeDerniersMois($mois);
 $visiteur = $pdo->getNomsVisiteurs();
 $leMois = filter_input(INPUT_POST, 'lstMois', FILTER_SANITIZE_STRING);
+$idVisiteur = filter_input(INPUT_POST, 'lstVisiteurs', FILTER_SANITIZE_STRING);
+$visiteurASelectionner = $idVisiteur;
+$moisASelectionner = $leMois;
+$lesFraisForfait = $pdo->getLesFraisForfait($idVisiteur, $leMois);
+$lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
 switch ($action) {
     case 'selectionnerMois':
         // Afin de sélectionner par défaut le dernier mois dans la zone de liste
@@ -31,31 +36,21 @@ switch ($action) {
         include 'vues/v_listeMoisVisiteurs.php';
         break;
     case 'validerFrais';
-        $idVisiteur = filter_input(INPUT_POST, 'lstVisiteurs', FILTER_SANITIZE_STRING);
-        $visiteurASelectionner = $idVisiteur;
-        $moisASelectionner = $leMois;
-        $nbJustificatifs=$pdo->getNbjustificatifs($idVisiteur, $mois);
-        $lesFraisForfait = $pdo->getLesFraisForfait($idVisiteur, $leMois);
-        $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
         if (empty($lesFraisForfait)) {
             ajouterErreur('Pas de fiche de frais pour ce visiteur ce mois');
-            header("Refresh: 3;URL=index.php?uc=validerFrais&action=selectionnerMois");
             include 'vues/v_erreurs.php';
+            header("Refresh: 1;URL=index.php?uc=validerFrais&action=selectionnerMois");
         }else{
+            $nbJustificatifs=$pdo->getNbjustificatifs($idVisiteur, $leMois);
            include 'vues/v_validerFrais.php'; 
         }
         
         break;
     case 'corrigerFrais';
-        $idVisiteur = filter_input(INPUT_POST, 'lstVisiteurs', FILTER_SANITIZE_STRING);
         $lesFrais = filter_input(INPUT_POST, 'lesFrais', FILTER_DEFAULT, FILTER_FORCE_ARRAY);
-        $nbJustificatifs=$pdo->getNbjustificatifs($idVisiteur, $mois);
-        $visiteurASelectionner = $idVisiteur;
-        $moisASelectionner = $leMois;
+        $nbJustificatifs=$pdo->getNbjustificatifs($idVisiteur, $leMois);
         if (lesQteFraisValides($lesFrais)) {
             $pdo->majFraisForfait($idVisiteur, $leMois, $lesFrais);
-            $lesFraisForfait = $pdo->getLesFraisForfait($idVisiteur, $leMois);
-            $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
             include 'vues/v_validerFrais.php';
         } else {
             ajouterErreur('Les valeurs des frais doivent être numériques');
@@ -65,35 +60,21 @@ switch ($action) {
         break;
     case 'corrigerFraisHorsForfait';
     if(isset($_POST['corrigerFHF'])){
-        $idVisiteur = filter_input(INPUT_POST, 'lstVisiteurs', FILTER_SANITIZE_STRING);
-       // $leMois = 202311;
-        //$idVisiteur = 'a17';
-        //$lesFraisHorsForfait = filter_input(INPUT_POST, 'lesFraisHorsForfait', FILTER_DEFAULT, FILTER_FORCE_ARRAY);
         $dateFrais = filter_input(INPUT_POST, 'dateFrais', FILTER_SANITIZE_STRING);
         $libelle = filter_input(INPUT_POST, 'libelle', FILTER_SANITIZE_STRING);
         $montant = filter_input(INPUT_POST, 'montant', FILTER_VALIDATE_FLOAT);
         $idFrais = filter_input(INPUT_POST, 'idFrais', FILTER_VALIDATE_INT);
-        $nbJustificatifs=$pdo->getNbjustificatifs($idVisiteur, $mois);
+        $nbJustificatifs=$pdo->getNbjustificatifs($idVisiteur, $leMois);
         $pdo->majFraisHorsForfait($idFrais,$idVisiteur,$leMois,$libelle,$dateFrais,$montant);
-        $visiteurASelectionner = $idVisiteur;
-        $moisASelectionner = $leMois;
-        $lesFraisForfait = $pdo->getLesFraisForfait($idVisiteur, $leMois);
-        $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
         include 'vues/v_validerFrais.php';
     }
    elseif(isset($_POST['supprimerFHF'])){
-        $idVisiteur = filter_input(INPUT_POST, 'lstVisiteurs', FILTER_SANITIZE_STRING);
         $idFrais = filter_input(INPUT_POST, 'idFrais', FILTER_SANITIZE_STRING);
-        $nbJustificatifs=$pdo->getNbjustificatifs($idVisiteur, $mois);
+        $nbJustificatifs=$pdo->getNbjustificatifs($idVisiteur, $leMois);
         $pdo->supprimerFraisHorsForfait($idFrais);
-        $visiteurASelectionner = $idVisiteur;
-        $moisASelectionner = $leMois;
-        $lesFraisForfait = $pdo->getLesFraisForfait($idVisiteur, $leMois);
-        $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
         include 'vues/v_validerFrais.php';
    } elseif (isset($_POST['reporterFHF'])) {
             $leMois2 = getMoisSuivant($leMois);
-            $idVisiteur = filter_input(INPUT_POST, 'lstVisiteurs', FILTER_SANITIZE_STRING);
             $dateFrais = filter_input(INPUT_POST, 'dateFrais', FILTER_SANITIZE_STRING);
             $libelle = filter_input(INPUT_POST, 'libelle', FILTER_SANITIZE_STRING);
             $libelle2 = 'Refusé '.$libelle;
@@ -102,10 +83,6 @@ switch ($action) {
             $nbJustificatifs = $pdo->getNbjustificatifs($idVisiteur, $leMois);
             $pdo->majFraisHorsForfait($idFrais, $idVisiteur, $leMois, $libelle2, $dateFrais, $montant);
             $pdo->creeNouveauFraisHorsForfait($idVisiteur,$leMois2,$libelle,$dateFrais,$montant);
-            $visiteurASelectionner = $idVisiteur;
-            $moisASelectionner = $leMois;
-            $lesFraisForfait = $pdo->getLesFraisForfait($idVisiteur, $leMois);
-            $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
             include 'vues/v_validerFrais.php';
         }
 

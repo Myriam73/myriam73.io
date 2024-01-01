@@ -51,6 +51,7 @@ switch ($action) {
         $nbJustificatifs=$pdo->getNbjustificatifs($idVisiteur, $leMois);
         if (lesQteFraisValides($lesFrais)) {
             $pdo->majFraisForfait($idVisiteur, $leMois, $lesFrais);
+            $lesFraisForfait = $pdo->getLesFraisForfait($idVisiteur, $leMois);
             include 'vues/v_validerFrais.php';
         } else {
             ajouterErreur('Les valeurs des frais doivent être numériques');
@@ -66,12 +67,14 @@ switch ($action) {
         $idFrais = filter_input(INPUT_POST, 'idFrais', FILTER_VALIDATE_INT);
         $nbJustificatifs=$pdo->getNbjustificatifs($idVisiteur, $leMois);
         $pdo->majFraisHorsForfait($idFrais,$idVisiteur,$leMois,$libelle,$dateFrais,$montant);
+        $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
         include 'vues/v_validerFrais.php';
     }
    elseif(isset($_POST['supprimerFHF'])){
         $idFrais = filter_input(INPUT_POST, 'idFrais', FILTER_SANITIZE_STRING);
         $nbJustificatifs=$pdo->getNbjustificatifs($idVisiteur, $leMois);
         $pdo->supprimerFraisHorsForfait($idFrais);
+        $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
         include 'vues/v_validerFrais.php';
    } elseif (isset($_POST['reporterFHF'])) {
             $leMois2 = getMoisSuivant($leMois);
@@ -83,6 +86,7 @@ switch ($action) {
             $nbJustificatifs = $pdo->getNbjustificatifs($idVisiteur, $leMois);
             $pdo->majFraisHorsForfait($idFrais, $idVisiteur, $leMois, $libelle2, $dateFrais, $montant);
             $pdo->creeNouveauFraisHorsForfait($idVisiteur,$leMois2,$libelle,$dateFrais,$montant);
+            $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
             include 'vues/v_validerFrais.php';
         }
 

@@ -61,24 +61,23 @@ switch ($action) {
 
         break;
     case 'corrigerFraisHorsForfait';
-    if(isset($_POST['corrigerFHF'])){
-        $nbJustificatifs=$pdo->getNbjustificatifs($idVisiteur, $leMois);
-        $pdo->majFraisHorsForfait($idFrais,$idVisiteur,$leMois,$libelle,$dateFrais,$montant);
-        $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
-        include 'vues/v_validerFrais.php';
-    }
-   elseif(isset($_POST['supprimerFHF'])){
-        $idFrais = filter_input(INPUT_POST, 'idFrais', FILTER_SANITIZE_STRING);
-        $nbJustificatifs=$pdo->getNbjustificatifs($idVisiteur, $leMois);
-        $pdo->supprimerFraisHorsForfait($idFrais);
-        $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
-        include 'vues/v_validerFrais.php';
-   } elseif (isset($_POST['reporterFHF'])) {
+        if (isset($_POST['corrigerFHF'])) {
+            $nbJustificatifs = $pdo->getNbjustificatifs($idVisiteur, $leMois);
+            $pdo->majFraisHorsForfait($idFrais, $idVisiteur, $leMois, $libelle, $dateFrais, $montant);
+            $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
+            include 'vues/v_validerFrais.php';
+        } elseif (isset($_POST['supprimerFHF'])) {
+            $idFrais = filter_input(INPUT_POST, 'idFrais', FILTER_SANITIZE_STRING);
+            $nbJustificatifs = $pdo->getNbjustificatifs($idVisiteur, $leMois);
+            $pdo->supprimerFraisHorsForfait($idFrais);
+            $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
+            include 'vues/v_validerFrais.php';
+        } elseif (isset($_POST['reporterFHF'])) {
             $leMois2 = getMoisSuivant($leMois);
-            $libelle2 = 'Refusé '.$libelle;
+            $libelle2 = 'Refusé ' . $libelle;
             $nbJustificatifs = $pdo->getNbjustificatifs($idVisiteur, $leMois);
             $pdo->majFraisHorsForfait($idFrais, $idVisiteur, $leMois, $libelle2, $dateFrais, $montant);
-            $pdo->creeNouveauFraisHorsForfait($idVisiteur,$leMois2,$libelle,$dateFrais,$montant);
+            $pdo->creeNouveauFraisHorsForfait($idVisiteur, $leMois2, $libelle, $dateFrais, $montant);
             $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
             include 'vues/v_validerFrais.php';
         }

@@ -20,15 +20,16 @@ $lesMois = getLesDouzeDerniersMois($mois);
 $visiteur = $pdo->getNomsVisiteurs();
 $leMois = filter_input(INPUT_POST, 'lstMois', FILTER_SANITIZE_STRING);
 $idVisiteur = filter_input(INPUT_POST, 'lstVisiteurs', FILTER_SANITIZE_STRING);
+$dateFrais = filter_input(INPUT_POST, 'dateFrais', FILTER_SANITIZE_STRING);
+$libelle = filter_input(INPUT_POST, 'libelle', FILTER_SANITIZE_STRING);
+$montant = filter_input(INPUT_POST, 'montant', FILTER_VALIDATE_FLOAT);
+$idFrais = filter_input(INPUT_POST, 'idFrais', FILTER_VALIDATE_INT);
 $visiteurASelectionner = $idVisiteur;
 $moisASelectionner = $leMois;
 $lesFraisForfait = $pdo->getLesFraisForfait($idVisiteur, $leMois);
 $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
 switch ($action) {
     case 'selectionnerMois':
-        // Afin de sélectionner par défaut le dernier mois dans la zone de liste
-        // on demande toutes les clés, et on prend la première,
-        // les mois étant triés décroissants
         $lesCles[] = array_keys($lesMois);
         $moisASelectionner = $lesCles[0];
         $lesCles[] = array_keys($visiteur);
@@ -61,10 +62,6 @@ switch ($action) {
         break;
     case 'corrigerFraisHorsForfait';
     if(isset($_POST['corrigerFHF'])){
-        $dateFrais = filter_input(INPUT_POST, 'dateFrais', FILTER_SANITIZE_STRING);
-        $libelle = filter_input(INPUT_POST, 'libelle', FILTER_SANITIZE_STRING);
-        $montant = filter_input(INPUT_POST, 'montant', FILTER_VALIDATE_FLOAT);
-        $idFrais = filter_input(INPUT_POST, 'idFrais', FILTER_VALIDATE_INT);
         $nbJustificatifs=$pdo->getNbjustificatifs($idVisiteur, $leMois);
         $pdo->majFraisHorsForfait($idFrais,$idVisiteur,$leMois,$libelle,$dateFrais,$montant);
         $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
@@ -78,11 +75,7 @@ switch ($action) {
         include 'vues/v_validerFrais.php';
    } elseif (isset($_POST['reporterFHF'])) {
             $leMois2 = getMoisSuivant($leMois);
-            $dateFrais = filter_input(INPUT_POST, 'dateFrais', FILTER_SANITIZE_STRING);
-            $libelle = filter_input(INPUT_POST, 'libelle', FILTER_SANITIZE_STRING);
             $libelle2 = 'Refusé '.$libelle;
-            $montant = filter_input(INPUT_POST, 'montant', FILTER_VALIDATE_FLOAT);
-            $idFrais = filter_input(INPUT_POST, 'idFrais', FILTER_VALIDATE_INT);
             $nbJustificatifs = $pdo->getNbjustificatifs($idVisiteur, $leMois);
             $pdo->majFraisHorsForfait($idFrais, $idVisiteur, $leMois, $libelle2, $dateFrais, $montant);
             $pdo->creeNouveauFraisHorsForfait($idVisiteur,$leMois2,$libelle,$dateFrais,$montant);

@@ -89,6 +89,5 @@ switch ($action) {
             $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
             include 'vues/v_validerFrais.php';
         }
-
         break;
 }

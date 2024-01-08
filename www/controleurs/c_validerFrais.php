@@ -13,6 +13,7 @@
  * @version   GIT: <0>
  * @link      http://www.reseaucerta.org Contexte « Laboratoire GSB »
  */
+
 $action = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_STRING);
 
 $mois = getMois(date('d/m/Y'));
@@ -80,6 +81,7 @@ switch ($action) {
             $pdo->creeNouveauFraisHorsForfait($idVisiteur, $leMois2, $libelle, $dateFrais, $montant);
             $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
             include 'vues/v_validerFrais.php';
+            
         }
         
         break;

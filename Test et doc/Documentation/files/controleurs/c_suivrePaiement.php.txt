@@ -1,0 +1,48 @@
+
+Deprecated: array_key_exists(): Using array_key_exists() on objects is deprecated. Use isset() or property_exists() instead in phar://C:/Users/33780/Downloads/phpDocumentor.phar/vendor/twig/twig/lib/Twig/Template.php on line 527
+<?php
+
+/* 
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHP.php to edit this template
+ */
+
+$action = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_STRING);
+switch ($action) {
+    case 'selectionnerVisiteur':
+        $visiteur = $pdo->getNomVisiteurVA();
+        $lesMois = $pdo->getLesMoisDisponiblesVA();
+        $lesCles[] = array_keys($lesMois);
+        $moisASelectionner = $lesCles[0];
+        $lesCles[] = array_keys($visiteur);
+        $visiteurASelectionner = $lesCles[0];
+        include 'vues/v_listeMoisVisiteursValides.php';
+        break;
+    case 'validerPaiement':
+        $idVisiteur = filter_input(INPUT_POST, 'lstVisiteurs', FILTER_SANITIZE_STRING);
+        $leMois = filter_input(INPUT_POST, 'lstMois', FILTER_SANITIZE_STRING);
+        $nomVisiteur = $pdo->getNomVisiteurFrais($idVisiteur);
+        var_dump($idVisiteur);
+        var_dump($nomVisiteur);
+        $lesMois = $pdo->getLesMoisDisponibles($idVisiteur);
+        $moisASelectionner = $leMois;
+        $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
+        $lesFraisForfait = $pdo->getLesFraisForfait($idVisiteur, $leMois);
+        $lesInfosFicheFrais = $pdo->getLesInfosFicheFrais($idVisiteur, $leMois);
+        $numAnnee = substr($leMois, 0, 4);
+        $numMois = substr($leMois, 4, 2);
+        $libEtat = $lesInfosFicheFrais['libEtat'];
+        $montantValide = $lesInfosFicheFrais['montantValide'];
+        $nbJustificatifs = $lesInfosFicheFrais['nbJustificatifs'];
+        $dateModif = dateAnglaisVersFrancais($lesInfosFicheFrais['dateModif']);
+        include 'vues/v_suivrePaiement.php';
+        break;
+    case 'remboursement':
+        $idVisiteur = filter_input(INPUT_POST, 'lstVisiteurs', FILTER_SANITIZE_STRING);
+        $leMois = filter_input(INPUT_POST, 'lstMois', FILTER_SANITIZE_STRING);
+        $pdo->majEtatFicheFrais($idVisiteur, $leMois, 'RB');
+        ajouterErreur('Vos fiches de frais forfait et hors forfait ont bien été remboursées');
+        include 'vues/v_erreurs.php';
+        header("Refresh: 20;URL=index.php?uc=suivrePaiement&action=selectionnerVisiteur");
+        break;
+}

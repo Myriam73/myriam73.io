@@ -1,0 +1,121 @@
+
+Deprecated: array_key_exists(): Using array_key_exists() on objects is deprecated. Use isset() or property_exists() instead in phar://C:/Users/33780/Downloads/phpDocumentor.phar/vendor/twig/twig/lib/Twig/Template.php on line 527
+<?php
+/**
+ * Gestion de l'affichage des frais
+ *
+ * PHP Version 7
+ *
+ * @category  PPE
+ * @package   GSB
+ * @author    Réseau CERTA <contact@reseaucerta.org>
+ * @author    José GIL <jgil@ac-nice.fr>
+ * @copyright 2017 Réseau CERTA
+ * @license   Réseau CERTA
+ * @version   GIT: <0>
+ * @link      http://www.reseaucerta.org Contexte « Laboratoire GSB »
+ */
+
+// éléments récupérés dans la vue 
+$action = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_STRING);
+$leMois = filter_input(INPUT_POST, 'lstMois', FILTER_SANITIZE_STRING);
+$idVisiteur = filter_input(INPUT_POST, 'lstVisiteurs', FILTER_SANITIZE_STRING);
+$dateFrais = filter_input(INPUT_POST, 'dateFrais', FILTER_SANITIZE_STRING);
+$libelle = filter_input(INPUT_POST, 'libelle', FILTER_SANITIZE_STRING);
+$montant = filter_input(INPUT_POST, 'montant', FILTER_VALIDATE_FLOAT);
+$idFrais = filter_input(INPUT_POST, 'idFrais', FILTER_VALIDATE_INT);
+// fonctions fct.inc.php
+$mois = getMois(date('d/m/Y'));
+$lesMois = getLesDouzeDerniersMois($mois);
+// fonctions nécessitant la BDD
+$visiteur = $pdo->getNomsVisiteurs();
+$lesFraisForfait = $pdo->getLesFraisForfait($idVisiteur, $leMois);
+$lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
+$visiteurASelectionner = $idVisiteur;
+$moisASelectionner = $leMois;
+
+switch ($action) {
+    // permet de récupérer la valeur du visiteur et du mois sélectionnés grâce à un tableau appelés $lesCles[]
+    case 'selectionnerMois':
+        $lesCles[] = array_keys($lesMois);
+        $moisASelectionner = $lesCles[0];
+        $lesCles[] = array_keys($visiteur);
+        $visiteurASelectionner = $lesCles[0];
+        include 'vues/v_listeMoisVisiteurs.php';
+        break;
+    
+    
+    // permet de vérifier dans la base de données si une fiche de frais existe pour ce visiteur ce mois là et l'affiche si c'est le cas
+    case 'validerFrais';
+        if (empty($lesFraisForfait)) {
+            ajouterErreur('Pas de fiche de frais pour ce visiteur ce mois');
+            include 'vues/v_erreurs.php';
+            header("Refresh: 3;URL=index.php?uc=validerFrais&action=selectionnerMois");
+        }else{
+            $nbJustificatifs=$pdo->getNbjustificatifs($idVisiteur, $leMois);
+           include 'vues/v_validerFrais.php'; 
+        }
+        break;
+        
+        
+    // récupère les modifications des frais forfaits s'il s'agit de valeurs numériques et affiche les valeurs modifiées
+    case 'corrigerFrais';
+        $lesFrais = filter_input(INPUT_POST, 'lesFrais', FILTER_DEFAULT, FILTER_FORCE_ARRAY);
+        $nbJustificatifs = $pdo->getNbjustificatifs($idVisiteur, $leMois);
+        if (lesQteFraisValides($lesFrais)) {
+            $pdo->majFraisForfait($idVisiteur, $leMois, $lesFrais);
+            $lesFraisForfait = $pdo->getLesFraisForfait($idVisiteur, $leMois);
+            ajouterErreur('Votre fiche de frais forfait a bien été corrigée');
+            include 'vues/v_erreurs.php';
+            include 'vues/v_validerFrais.php';
+        } else {
+            ajouterErreur('Les valeurs des frais doivent être numériques');
+            include 'vues/v_erreurs.php';
+        }
+        break;
+        
+        
+    // Permet d'afficher les modifications des frais hors forfait
+    case 'corrigerFraisHorsForfait';
+    
+    // réaffiche les frais hors forfaits modifiés
+        if (isset($_POST['corrigerFHF'])) {
+            $nbJustificatifs = $pdo->getNbjustificatifs($idVisiteur, $leMois);
+            $pdo->majFraisHorsForfait($idFrais, $idVisiteur, $leMois, $libelle, $dateFrais, $montant);
+            $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
+            include 'vues/v_validerFrais.php';
+            
+    // supprime un frais hors forfait pour un id donné
+        } elseif (isset($_POST['supprimerFHF'])) {
+            $idFrais = filter_input(INPUT_POST, 'idFrais', FILTER_SANITIZE_STRING);
+            $nbJustificatifs = $pdo->getNbjustificatifs($idVisiteur, $leMois);
+            $pdo->supprimerFraisHorsForfait($idFrais);
+            $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
+            include 'vues/v_validerFrais.php';
+    
+    // ajoute le mot reporté au frais hors forfait actuel et enregistre ce frais hors forfait au mois suivant
+        } elseif (isset($_POST['reporterFHF'])) {
+            $leMois2 = getMoisSuivant($leMois);
+            $libelle2 = 'refuse ' . $libelle;
+            $nbJustificatifs = $pdo->getNbjustificatifs($idVisiteur, $leMois);
+            $pdo->majFraisHorsForfait($idFrais, $idVisiteur, $leMois, $libelle2, $dateFrais, $montant);
+            $pdo->creeNouveauFraisHorsForfait($idVisiteur, $leMois2, $libelle, $dateFrais, $montant);
+            $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $leMois);
+            include 'vues/v_validerFrais.php'; 
+        }
+        break;
+        
+        
+    case 'validerJustificatifs';
+        $calculFHF = $pdo->getCaculFHF($idVisiteur, $leMois);
+        $calculFraisForfait = $pdo->getCaculFraisForfait($idVisiteur, $leMois);
+        $montantFHF = $calculFHF[0][0];
+        $montantFraisForfait = $calculFraisForfait[0][0];
+        $total = $montantFHF + $montantFraisForfait;
+        $pdo->majMontantValide($idVisiteur, $leMois, $total);
+        $pdo->majEtatFicheFrais($idVisiteur, $leMois, 'VA');
+        ajouterErreur('Vos fiches de frais forfait et hors forfait ont bien été validées');
+        include 'vues/v_erreurs.php';
+        header("Refresh: 3;URL=index.php?uc=validerFrais&action=selectionnerMois");
+        break;
+}
